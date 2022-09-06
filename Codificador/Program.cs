@@ -32,20 +32,27 @@ public class Program
             return;
         }
 
-        switch (args[0])
+        try
         {
-            case "nrzi":
-                Console.WriteLine(nrziEncode(args[1]));
-                break;
-            case "mdif":
-            case "hdb3":
-            case "8b6t":
-            case "6b8b":
-                Console.WriteLine($"Selected {args[0]} with data {args[1]}");
-                break;
-            default:
-                Console.WriteLine("erro");
-                break;
+            switch (args[0])
+            {
+                case "nrzi":
+                    Console.WriteLine(nrziEncode(args[1]));
+                    break;
+                case "mdif":
+                case "hdb3":
+                case "8b6t":
+                case "6b8b":
+                    Console.WriteLine($"Selected {args[0]} with data {args[1]}");
+                    break;
+                default:
+                    Console.WriteLine("erro");
+                    break;
+            }
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("erro");
         }
     }
 
@@ -65,6 +72,7 @@ public class Program
                         '+' => '-'
                     };
                 }
+
                 encodedData.Append(signal);
             }
         }

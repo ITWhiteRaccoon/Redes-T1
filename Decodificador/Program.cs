@@ -56,25 +56,20 @@ public class Program
         }
     }
 
-    public static string nrziDecode(string binInput)
+    public static string nrziDecode(string signalInput)
     {
-        var decodedData = new StringBuilder();
-        var digit = 0;
+        var decodedDataBin = new StringBuilder();
         var lastSignal = '-';
-        for (var i = 0; i <= binInput.Length - 4; i += 4)
+        foreach (var c in signalInput)
         {
-            var hex = new StringBuilder();
-            foreach (var c in binInput[i..(i + 4)])
-            {
-                digit = c != lastSignal ? 1 : 0;
-
-                lastSignal = c;
-                hex.Append(digit);
-            }
-
-            decodedData.Append(hex);
+            //Para cada sinal lido, se diferente do anterior quer dizer que o bit é 1, se igual então 0
+            var digit = c != lastSignal ? 1 : 0;
+            //Guarda o sinal lido como último usado
+            lastSignal = c;
+            //Adiciona o bit ao final dos dados decodificados
+            decodedDataBin.Append(digit);
         }
-
-        return Convert.ToInt64(decodedData.ToString(), 2).ToString("X");
+        //O dado foi lido bit a bit. Para retornar, transforma na representação em hexa
+        return Convert.ToInt64(decodedDataBin.ToString(), 2).ToString("X");
     }
 }

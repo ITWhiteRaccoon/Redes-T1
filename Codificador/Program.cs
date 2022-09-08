@@ -62,8 +62,10 @@ public class Program
         var signal = '-';
         foreach (var c in hexInput)
         {
+            //Lê cada caractere de entrada como hexa e transforma na representação em binário
             foreach (var bin in HexCharToBin[c])
             {
+                //Para cada bit da representação em binário, se for 1 inverte o sinal atual
                 if (bin == '1')
                 {
                     signal = signal switch
@@ -73,6 +75,7 @@ public class Program
                     };
                 }
 
+                //Adiciona o dado codificado ao fim da string
                 encodedData.Append(signal);
             }
         }

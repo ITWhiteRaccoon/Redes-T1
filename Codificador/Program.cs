@@ -4,6 +4,12 @@ namespace Codificador;
 
 public class Program
 {
+    enum Signal
+    {
+        Minus = 0,
+        Plus = 1
+    }
+
     private static readonly Dictionary<char, string> HexCharToBin = new()
     {
         { '0', "0000" },
@@ -56,14 +62,42 @@ public class Program
         }
     }
 
+    public static string mdifEncode(string hexInput)
+    {
+        var encodedData = new StringBuilder();
+        var lastSignal = '-';
+        foreach (var hex in hexInput)
+        {
+            foreach (var bin in HexCharToBin[hex])
+            {
+                if (bin == '0')
+                {
+                    if (lastSignal == '-') { }
+                    else if (lastSignal == '+') { }
+
+                    encodedData.Append("-+");
+                }
+                else if (bin == '1')
+                {
+                    if (lastSignal == '-') { }
+                    else if (lastSignal == '+') { }
+
+                    encodedData.Append("-+");
+                }
+            }
+        }
+
+        return "";
+    }
+
     public static string nrziEncode(string hexInput)
     {
         var encodedData = new StringBuilder();
         var signal = '-';
-        foreach (var c in hexInput)
+        foreach (var hex in hexInput)
         {
             //Lê cada caractere de entrada como hexa e transforma na representação em binário
-            foreach (var bin in HexCharToBin[c])
+            foreach (var bin in HexCharToBin[hex])
             {
                 //Para cada bit da representação em binário, se for 1 inverte o sinal atual
                 if (bin == '1')

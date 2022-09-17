@@ -2,7 +2,7 @@
 
 namespace Decodificador;
 
-public class Program
+public class Decoder
 {
     private static readonly Dictionary<string, char> BinToHexChar = new()
     {
@@ -34,16 +34,23 @@ public class Program
 
         try
         {
-            switch (args[0])
+            string signalInput = args[1].ToLower();
+            switch (args[0].ToLower())
             {
                 case "nrzi":
-                    Console.WriteLine(nrziDecode(args[1]));
+                    Console.WriteLine(DecodeNrzi(signalInput));
                     break;
                 case "mdif":
+                    Console.WriteLine(DecodeMdif(signalInput));
+                    break;
                 case "hdb3":
+                    Console.WriteLine(DecodeHdb3(signalInput));
+                    break;
                 case "8b6t":
+                    Console.WriteLine(Decode8B6T(signalInput));
+                    break;
                 case "6b8b":
-                    Console.WriteLine($"Selected {args[0]} with data {args[1]}");
+                    Console.WriteLine(Decode6B8B(signalInput));
                     break;
                 default:
                     Console.WriteLine("erro");
@@ -56,20 +63,41 @@ public class Program
         }
     }
 
-    public static string nrziDecode(string signalInput)
+    public static string DecodeNrzi(string signalInput)
     {
         var decodedDataBin = new StringBuilder();
-        var lastSignal = '-';
-        foreach (var c in signalInput)
+        char lastSignal = '-';
+        foreach (char c in signalInput)
         {
             //Para cada sinal lido, se diferente do anterior quer dizer que o bit é 1, se igual então 0
-            var digit = c != lastSignal ? 1 : 0;
+            int digit = c != lastSignal ? 1 : 0;
             //Guarda o sinal lido como último usado
             lastSignal = c;
             //Adiciona o bit ao final dos dados decodificados
             decodedDataBin.Append(digit);
         }
+
         //O dado foi lido bit a bit. Para retornar, transforma na representação em hexa
         return Convert.ToInt64(decodedDataBin.ToString(), 2).ToString("X");
+    }
+
+    public static string DecodeMdif(string signalInput)
+    {
+        return "";
+    }
+
+    public static string DecodeHdb3(string signalInput)
+    {
+        return "";
+    }
+
+    public static string Decode8B6T(string signalInput)
+    {
+        return "";
+    }
+
+    public static string Decode6B8B(string signalInput)
+    {
+        return "";
     }
 }

@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Codificador\Codificador.csproj" />
+      <ProjectReference Include="..\Decodificador\Decodificador.csproj" />
     </ItemGroup>
 
 </Project>

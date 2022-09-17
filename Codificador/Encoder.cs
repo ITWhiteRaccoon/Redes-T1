@@ -71,7 +71,7 @@ public class Encoder
 
     public static string EncodeNrzi(string hexInput)
     {
-        var encodedData = new StringBuilder();
+        StringBuilder encodedData = new();
         char signal = '-';
         foreach (char hex in hexInput.ToLower())
         {
@@ -98,38 +98,35 @@ public class Encoder
 
     public static string EncodeMdif(string hexInput)
     {
-        var encodedData = new StringBuilder();
+        StringBuilder encodedData = new();
         char lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
             foreach (char bin in HexCharToBin[hex])
             {
-                if (bin == '0')
+                //TODO mudar para escrever o primeiro sinal depois inverter e escrever de novo
+                
+                switch (bin)
                 {
-                    if (lastSignal == '-')
-                    {
-                    }
-                    else if (lastSignal == '+')
-                    {
-                    }
-
-                    encodedData.Append("-+");
+                    case '0' when lastSignal == '-':
+                        encodedData.Append("+-");
+                        break;
+                    case '0' when lastSignal == '+':
+                        encodedData.Append("-+");
+                        break;
+                    case '1' when lastSignal == '-':
+                        encodedData.Append("-+");
+                        break;
+                    case '1' when lastSignal == '+':
+                        encodedData.Append("+-");
+                        break;
                 }
-                else if (bin == '1')
-                {
-                    if (lastSignal == '-')
-                    {
-                    }
-                    else if (lastSignal == '+')
-                    {
-                    }
 
-                    encodedData.Append("-+");
-                }
+                lastSignal = encodedData[^1];
             }
         }
 
-        return "";
+        return encodedData.ToString();
     }
 
 

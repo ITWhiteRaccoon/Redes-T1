@@ -63,9 +63,21 @@ public class Decoder
         }
     }
 
+    public static string BinToHex(string bin)
+    {
+        StringBuilder hex = new();
+        bin = bin.PadLeft((int)Math.Ceiling((double)(bin.Length / 4)), '0');
+        for (int i = 0; i < bin.Length; i += 4)
+        {
+            hex.Append(BinToHexChar[bin[i..(i + 4)]]);
+        }
+
+        return hex.ToString();
+    }
+
     public static string DecodeNrzi(string signalInput)
     {
-        var decodedDataBin = new StringBuilder();
+        StringBuilder decodedDataBin = new();
         char lastSignal = '-';
         foreach (char c in signalInput)
         {
@@ -78,12 +90,21 @@ public class Decoder
         }
 
         //O dado foi lido bit a bit. Para retornar, transforma na representação em hexa
-        return Convert.ToInt64(decodedDataBin.ToString(), 2).ToString("X");
+        return BinToHex(decodedDataBin.ToString()).ToUpper();
     }
 
     public static string DecodeMdif(string signalInput)
     {
-        return "";
+        StringBuilder decodedDataBin = new();
+        char lastSignal = '-';
+        for (int i = 0; i < signalInput.Length; i += 2)
+        {
+            int digit = signalInput[i] != lastSignal ? 0 : 1;
+            lastSignal = signalInput[i + 1];
+            decodedDataBin.Append(digit);
+        }
+
+        return BinToHex(decodedDataBin.ToString()).ToUpper();
     }
 
     public static string DecodeHdb3(string signalInput)

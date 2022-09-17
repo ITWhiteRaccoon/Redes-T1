@@ -59,7 +59,7 @@ public class TestDecoder
     [Test]
     public void TestDecoderNrzi()
     {
-        foreach (var testExpected in ExpectedNrzi)
+        foreach (TestResult testExpected in ExpectedNrzi)
         {
             string testOutput = Decoder.DecodeNrzi(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
@@ -70,7 +70,7 @@ public class TestDecoder
     [Test]
     public void TestDecoderMdif()
     {
-        foreach (var testExpected in ExpectedMdif)
+        foreach (TestResult testExpected in ExpectedMdif)
         {
             string testOutput = Decoder.DecodeMdif(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
@@ -81,7 +81,7 @@ public class TestDecoder
     [Test]
     public void TestDecoder8B6T()
     {
-        foreach (var testExpected in Expected8B6T)
+        foreach (TestResult testExpected in Expected8B6T)
         {
             string testOutput = Decoder.Decode8B6T(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
@@ -92,7 +92,7 @@ public class TestDecoder
     [Test]
     public void TestDecoder6B8B()
     {
-        foreach (var testExpected in Expected6B8B)
+        foreach (TestResult testExpected in Expected6B8B)
         {
             string testOutput = Decoder.Decode6B8B(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
@@ -103,7 +103,7 @@ public class TestDecoder
     [Test]
     public void TestDecoderHdb3()
     {
-        foreach (var testExpected in ExpectedHdb3)
+        foreach (TestResult testExpected in ExpectedHdb3)
         {
             string testOutput = Decoder.DecodeHdb3(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),

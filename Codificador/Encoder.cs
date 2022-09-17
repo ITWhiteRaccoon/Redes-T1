@@ -72,7 +72,7 @@ public class Encoder
     public static string EncodeNrzi(string hexInput)
     {
         StringBuilder encodedData = new();
-        char signal = '-';
+        char lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
             //Lê cada caractere de entrada como hexa e transforma na representação em binário
@@ -81,7 +81,7 @@ public class Encoder
                 //Para cada bit da representação em binário, se for 1 inverte o sinal atual
                 if (bin == '1')
                 {
-                    signal = signal switch
+                    lastSignal = lastSignal switch
                     {
                         '-' => '+',
                         '+' => '-'
@@ -89,7 +89,7 @@ public class Encoder
                 }
 
                 //Adiciona o dado codificado ao fim da string
-                encodedData.Append(signal);
+                encodedData.Append(lastSignal);
             }
         }
 
@@ -104,8 +104,24 @@ public class Encoder
         {
             foreach (char bin in HexCharToBin[hex])
             {
-                //TODO mudar para escrever o primeiro sinal depois inverter e escrever de novo
-                
+                //Outro jeito de implementar, invertendo o sinal se for 0 e mantendo se for 1 e escrevendo o segundo sinal invertido
+                /*if (bin == '0')
+                {
+                    lastSignal = lastSignal switch
+                    {
+                        '-' => '+',
+                        '+' => '-'
+                    };
+                }
+
+                encodedData.Append(lastSignal);
+                lastSignal = lastSignal switch
+                {
+                    '-' => '+',
+                    '+' => '-'
+                };
+                encodedData.Append(lastSignal);*/
+
                 switch (bin)
                 {
                     case '0' when lastSignal == '-':

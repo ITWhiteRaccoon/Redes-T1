@@ -4,6 +4,8 @@ namespace Test_Redes_T1;
 
 public class TestDecoder
 {
+    private Decoder _decoder;
+
     private static readonly TestResult[] ExpectedNrzi =
     {
         new("-++--+---+-+----", "5678"),
@@ -56,12 +58,18 @@ public class TestDecoder
         new("+0-0+0-0+0-+-0+-+-00+-00+-0+-+0-+-+0-+-0+-+-+-+-", "AABBCCDDEEFF"),
     };
 
+    [OneTimeSetUp]
+    public void SetUp()
+    {
+        _decoder = new Decoder();
+    }
+
     [Test]
     public void TestDecoderNrzi()
     {
-        foreach (TestResult testExpected in ExpectedNrzi)
+        foreach (var testExpected in ExpectedNrzi)
         {
-            string testOutput = Decoder.DecodeNrzi(testExpected.Input);
+            string testOutput = _decoder.DecodeNrzi(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For nrzi with input {testExpected.Input}:");
         }
@@ -70,9 +78,9 @@ public class TestDecoder
     [Test]
     public void TestDecoderMdif()
     {
-        foreach (TestResult testExpected in ExpectedMdif)
+        foreach (var testExpected in ExpectedMdif)
         {
-            string testOutput = Decoder.DecodeMdif(testExpected.Input);
+            string testOutput = _decoder.DecodeMdif(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For mdif with input {testExpected.Input}:");
         }
@@ -81,9 +89,9 @@ public class TestDecoder
     [Test]
     public void TestDecoder8B6T()
     {
-        foreach (TestResult testExpected in Expected8B6T)
+        foreach (var testExpected in Expected8B6T)
         {
-            string testOutput = Decoder.Decode8B6T(testExpected.Input);
+            string testOutput = _decoder.Decode8B6T(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For 8b6t with input {testExpected.Input}:");
         }
@@ -92,9 +100,9 @@ public class TestDecoder
     [Test]
     public void TestDecoder6B8B()
     {
-        foreach (TestResult testExpected in Expected6B8B)
+        foreach (var testExpected in Expected6B8B)
         {
-            string testOutput = Decoder.Decode6B8B(testExpected.Input);
+            string testOutput = _decoder.Decode6B8B(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For 6b8b with input {testExpected.Input}:");
         }
@@ -103,9 +111,9 @@ public class TestDecoder
     [Test]
     public void TestDecoderHdb3()
     {
-        foreach (TestResult testExpected in ExpectedHdb3)
+        foreach (var testExpected in ExpectedHdb3)
         {
-            string testOutput = Decoder.DecodeHdb3(testExpected.Input);
+            string testOutput = _decoder.DecodeHdb3(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For Hdb3 with input {testExpected.Input}:");
         }

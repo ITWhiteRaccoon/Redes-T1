@@ -9,7 +9,7 @@ public class Encoder
 
     public Encoder()
     {
-        _hexCharToBin = IO.ReadDictionary<char, string>("hex-bin.csv");
+        _hexCharToBin = IO.ReadDictionary<char, string>("Dados/hex-bin.csv");
     }
 
     public static void Main(string[] args)
@@ -55,7 +55,7 @@ public class Encoder
     public string EncodeNrzi(string hexInput)
     {
         StringBuilder encodedData = new();
-        char lastSignal = '-';
+        var lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
             //Lê cada caractere de entrada como hexa e transforma na representação em binário
@@ -82,7 +82,7 @@ public class Encoder
     public string EncodeMdif(string hexInput)
     {
         StringBuilder encodedData = new();
-        char lastSignal = '-';
+        var lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
             foreach (char bin in _hexCharToBin[hex])
@@ -131,7 +131,7 @@ public class Encoder
 
     public string Encode8B6T(string hexInput)
     {
-        var _binTo8b6t = IO.ReadDictionary<string, string>("bin-8b6t.csv");
+        var _binTo8b6t = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv");
         return "";
     }
 

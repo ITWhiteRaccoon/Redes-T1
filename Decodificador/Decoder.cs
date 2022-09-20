@@ -1,28 +1,16 @@
 ﻿using System.Text;
+using Util;
 
 namespace Decodificador;
 
 public class Decoder
 {
-    private static readonly Dictionary<string, char> BinToHexChar = new()
+    private readonly Dictionary<string, char> _binToHexChar;
+
+    public Decoder()
     {
-        { "0000", '0' },
-        { "0001", '1' },
-        { "0010", '2' },
-        { "0011", '3' },
-        { "0100", '4' },
-        { "0101", '5' },
-        { "0110", '6' },
-        { "0111", '7' },
-        { "1000", '8' },
-        { "1001", '9' },
-        { "1010", 'a' },
-        { "1011", 'b' },
-        { "1100", 'c' },
-        { "1101", 'd' },
-        { "1110", 'e' },
-        { "1111", 'f' }
-    };
+        _binToHexChar = IO.ReadDictionary<string, char>("Dados/hex-bin.csv", 1, 0);
+    }
 
     public static void Main(string[] args)
     {
@@ -35,27 +23,16 @@ public class Decoder
         try
         {
             string signalInput = args[1].ToLower();
-            switch (args[0].ToLower())
+            var decoder = new Decoder();
+            Console.WriteLine(args[0].ToLower() switch
             {
-                case "nrzi":
-                    Console.WriteLine(DecodeNrzi(signalInput));
-                    break;
-                case "mdif":
-                    Console.WriteLine(DecodeMdif(signalInput));
-                    break;
-                case "hdb3":
-                    Console.WriteLine(DecodeHdb3(signalInput));
-                    break;
-                case "8b6t":
-                    Console.WriteLine(Decode8B6T(signalInput));
-                    break;
-                case "6b8b":
-                    Console.WriteLine(Decode6B8B(signalInput));
-                    break;
-                default:
-                    Console.WriteLine("erro");
-                    break;
-            }
+                "nrzi" => decoder.DecodeNrzi(signalInput),
+                "mdif" => decoder.DecodeMdif(signalInput),
+                "hdb3" => decoder.DecodeHdb3(signalInput),
+                "8b6t" => decoder.Decode8B6T(signalInput),
+                "6b8b" => decoder.Decode6B8B(signalInput),
+                _ => "erro"
+            });
         }
         catch (Exception)
         {
@@ -63,22 +40,23 @@ public class Decoder
         }
     }
 
-    public static string BinToHex(string bin)
+    public string BinToHex(string bin)
     {
+        //Transforma o binário em hexadecimal, adicionando zeros à esquerda para completar os 4 bits
         StringBuilder hex = new();
         bin = bin.PadLeft((int)Math.Ceiling((double)(bin.Length / 4)), '0');
-        for (int i = 0; i < bin.Length; i += 4)
+        for (var i = 0; i < bin.Length; i += 4)
         {
-            hex.Append(BinToHexChar[bin[i..(i + 4)]]);
+            hex.Append(_binToHexChar[bin[i..(i + 4)]]);
         }
 
         return hex.ToString();
     }
 
-    public static string DecodeNrzi(string signalInput)
+    public string DecodeNrzi(string signalInput)
     {
         StringBuilder decodedDataBin = new();
-        char lastSignal = '-';
+        var lastSignal = '-';
         foreach (char c in signalInput)
         {
             //Para cada sinal lido, se diferente do anterior quer dizer que o bit é 1, se igual então 0
@@ -93,31 +71,40 @@ public class Decoder
         return BinToHex(decodedDataBin.ToString()).ToUpper();
     }
 
-    public static string DecodeMdif(string signalInput)
+    public string DecodeMdif(string signalInput)
     {
         StringBuilder decodedDataBin = new();
-        char lastSignal = '-';
-        for (int i = 0; i < signalInput.Length; i += 2)
+        var lastSignal = '-';
+        for (var i = 0; i < signalInput.Length; i += 2)
         {
+            //Para cada sinal lido, se for diferente do anterior, quer dizer que o bit é 0. O segundo sinal é ignorado,
+            //pois representa a transição de onde que serve apenas para sincronização.
             int digit = signalInput[i] != lastSignal ? 0 : 1;
             lastSignal = signalInput[i + 1];
+                
             decodedDataBin.Append(digit);
         }
 
         return BinToHex(decodedDataBin.ToString()).ToUpper();
     }
 
-    public static string DecodeHdb3(string signalInput)
+    public string Decode8B6T(string signalInput)
+    {
+        StringBuilder decodedDataBin = new();
+        for (var i = 0; i < signalInput.Length; i += 2)
+        {
+                
+        }
+
+        return BinToHex(decodedDataBin.ToString()).ToUpper();
+    }
+
+    public string Decode6B8B(string signalInput)
     {
         return "";
     }
 
-    public static string Decode8B6T(string signalInput)
-    {
-        return "";
-    }
-
-    public static string Decode6B8B(string signalInput)
+    public string DecodeHdb3(string signalInput)
     {
         return "";
     }

@@ -1,34 +1,16 @@
 ﻿using System.Text;
+using Util;
 
 namespace Codificador;
 
 public class Encoder
 {
-    enum Signal
-    {
-        Minus = 0,
-        Plus = 1
-    }
+    private readonly Dictionary<char, string> _hexCharToBin;
 
-    private static readonly Dictionary<char, string> HexCharToBin = new()
+    public Encoder()
     {
-        { '0', "0000" },
-        { '1', "0001" },
-        { '2', "0010" },
-        { '3', "0011" },
-        { '4', "0100" },
-        { '5', "0101" },
-        { '6', "0110" },
-        { '7', "0111" },
-        { '8', "1000" },
-        { '9', "1001" },
-        { 'a', "1010" },
-        { 'b', "1011" },
-        { 'c', "1100" },
-        { 'd', "1101" },
-        { 'e', "1110" },
-        { 'f', "1111" }
-    };
+        _hexCharToBin = IO.ReadDictionary<char, string>("Dados/hex-bin.csv");
+    }
 
     public static void Main(string[] args)
     {
@@ -41,27 +23,16 @@ public class Encoder
         try
         {
             string hexInput = args[1].ToLower();
-            switch (args[0].ToLower())
+            var encoder = new Encoder();
+            Console.WriteLine(args[0].ToLower() switch
             {
-                case "nrzi":
-                    Console.WriteLine(EncodeNrzi(hexInput));
-                    break;
-                case "mdif":
-                    Console.WriteLine(EncodeMdif(hexInput));
-                    break;
-                case "hdb3":
-                    Console.WriteLine(EncodeHdb3(hexInput));
-                    break;
-                case "8b6t":
-                    Console.WriteLine(Encode8B6T(hexInput));
-                    break;
-                case "6b8b":
-                    Console.WriteLine(Encode6B8B(hexInput));
-                    break;
-                default:
-                    Console.WriteLine("erro");
-                    break;
-            }
+                "nrzi" => encoder.EncodeNrzi(hexInput),
+                "mdif" => encoder.EncodeMdif(hexInput),
+                "hdb3" => encoder.EncodeHdb3(hexInput),
+                "8b6t" => encoder.Encode8B6T(hexInput),
+                "6b8b" => encoder.Encode6B8B(hexInput),
+                _ => "erro"
+            });
         }
         catch (Exception)
         {
@@ -69,16 +40,16 @@ public class Encoder
         }
     }
 
-    public static string EncodeNrzi(string hexInput)
+    public string EncodeNrzi(string hexInput)
     {
         StringBuilder encodedData = new();
-        char lastSignal = '-';
+        var lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
-            //Lê cada caractere de entrada como hexa e transforma na representação em binário
-            foreach (char bin in HexCharToBin[hex])
+            //Lemos cada caractere de entrada como hexa e transformamos na representação em binário
+            foreach (char bin in _hexCharToBin[hex])
             {
-                //Para cada bit da representação em binário, se for 1 inverte o sinal atual
+                //Para cada bit da representação em binário, se for 1 invertemos o sinal atual
                 if (bin == '1')
                 {
                     lastSignal = lastSignal switch
@@ -96,15 +67,29 @@ public class Encoder
         return encodedData.ToString();
     }
 
-    public static string EncodeMdif(string hexInput)
+    public string EncodeMdif(string hexInput)
     {
         StringBuilder encodedData = new();
-        char lastSignal = '-';
+        var lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
-            foreach (char bin in HexCharToBin[hex])
+            foreach (char bin in _hexCharToBin[hex])
             {
-                //Outro jeito de implementar, invertendo o sinal se for 0 e mantendo se for 1 e escrevendo o segundo sinal invertido
+                //Para cada bit da representação em binário, se for 0 invertemos o sinal, se for 1 mantemos o atual.
+                //A transição de onda é considerada, mas mapeada diretamente. Desta maneira o código fica mais limpo.
+                encodedData.Append(bin switch
+                {
+                    '0' when lastSignal == '-' => "+-",
+                    '0' when lastSignal == '+' => "-+",
+                    '1' when lastSignal == '-' => "-+",
+                    '1' when lastSignal == '+' => "+-"
+                });
+
+                lastSignal = encodedData[^1];
+                
+                //Outro jeito de implementar, invertemos o sinal se for 0 e mantemos se for 1. Então escrevemos o
+                //segundo sinal invertido representando a transição da onda.
+                
                 /*if (bin == '0')
                 {
                     lastSignal = lastSignal switch
@@ -121,24 +106,6 @@ public class Encoder
                     '+' => '-'
                 };
                 encodedData.Append(lastSignal);*/
-
-                switch (bin)
-                {
-                    case '0' when lastSignal == '-':
-                        encodedData.Append("+-");
-                        break;
-                    case '0' when lastSignal == '+':
-                        encodedData.Append("-+");
-                        break;
-                    case '1' when lastSignal == '-':
-                        encodedData.Append("-+");
-                        break;
-                    case '1' when lastSignal == '+':
-                        encodedData.Append("+-");
-                        break;
-                }
-
-                lastSignal = encodedData[^1];
             }
         }
 
@@ -146,17 +113,63 @@ public class Encoder
     }
 
 
-    public static string Encode8B6T(string hexInput)
+    public string Encode8B6T(string hexInput)
+    {
+        //Lemos a tabela de 8B6T para conversão de bits em sinais e transformamos em um dicionário.
+        var _binTo8b6t = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv");
+        hexInput = hexInput.ToLower();
+        
+        var encodedData = new StringBuilder();
+        var weight = 0;
+        
+        //A cada dois caracteres hexa, transformamos em 8 bits e consultamos o sinal correspondente no dicionário
+        for (var i = 0; i < hexInput.Length - 1; i += 2)
+        {
+            string encodedStr = _binTo8b6t[_hexCharToBin[hexInput[i]] + _hexCharToBin[hexInput[i + 1]]];
+
+            //8b6t tem somente desbalanços positivos. Se ao somar os sinais obtivermos 1, significa que existe desbalanço.
+            foreach (char c in encodedStr)
+            {
+                weight = c switch
+                {
+                    '+' => weight + 1,
+                    '-' => weight - 1,
+                    _ => weight
+                };
+            }
+
+            //Se o peso for 1, significa que os 6 sinais atuais estão em desbalanço. Ao encontrarmos mais 6 sinais em 
+            //desbalanço, o peso será 2, sinalizando que podemos inverter estes 6 sinais para balancear o DC novamente.
+            if (weight > 1)
+            {
+                var newEncodedStr = new StringBuilder();
+                //Invertemos cada sinal e ao fim zeramos o peso.
+                foreach (char c in encodedStr)
+                {
+                    newEncodedStr.Append(c switch
+                    {
+                        '+' => '-',
+                        '-' => '+',
+                        _ => c
+                    });
+                }
+
+                encodedStr = newEncodedStr.ToString();
+                weight = 0;
+            }
+
+            encodedData.Append(encodedStr);
+        }
+
+        return encodedData.ToString();
+    }
+
+    public string Encode6B8B(string hexInput)
     {
         return "";
     }
 
-    public static string Encode6B8B(string hexInput)
-    {
-        return "";
-    }
-
-    public static string EncodeHdb3(string hexInput)
+    public string EncodeHdb3(string hexInput)
     {
         return "";
     }

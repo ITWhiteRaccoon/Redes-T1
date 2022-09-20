@@ -132,7 +132,41 @@ public class Encoder
     public string Encode8B6T(string hexInput)
     {
         var _binTo8b6t = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv");
-        return "";
+        StringBuilder encodedData = new();
+        var weight = 0;
+        hexInput = hexInput.ToLower();
+        for (var i = 0; i < hexInput.Length - 1; i += 2)
+        {
+            string encodedStr = _binTo8b6t[_hexCharToBin[hexInput[i]] + _hexCharToBin[hexInput[i + 1]]];
+            if (weight > 0)
+            {
+                var newEncodedStr = new StringBuilder();
+                foreach (char c in encodedStr)
+                {
+                    newEncodedStr.Append(c switch
+                    {
+                        '+' => '-',
+                        '-' => '+',
+                        _ => c
+                    });
+                }
+            }
+            else
+            {
+                foreach (char c in encodedStr)
+                {
+                    weight = c switch
+                    {
+                        '+' => weight + 1,
+                        '-' => weight - 1
+                    };
+                }
+            }
+
+            encodedData.Append();
+        }
+
+        return encodedData.ToString();
     }
 
     public string Encode6B8B(string hexInput)

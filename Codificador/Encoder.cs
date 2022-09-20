@@ -24,27 +24,15 @@ public class Encoder
         {
             string hexInput = args[1].ToLower();
             var encoder = new Encoder();
-            switch (args[0].ToLower())
+            Console.WriteLine(args[0].ToLower() switch
             {
-                case "nrzi":
-                    Console.WriteLine(encoder.EncodeNrzi(hexInput));
-                    break;
-                case "mdif":
-                    Console.WriteLine(encoder.EncodeMdif(hexInput));
-                    break;
-                case "hdb3":
-                    Console.WriteLine(encoder.EncodeHdb3(hexInput));
-                    break;
-                case "8b6t":
-                    Console.WriteLine(encoder.Encode8B6T(hexInput));
-                    break;
-                case "6b8b":
-                    Console.WriteLine(encoder.Encode6B8B(hexInput));
-                    break;
-                default:
-                    Console.WriteLine("erro");
-                    break;
-            }
+                "nrzi" => encoder.EncodeNrzi(hexInput),
+                "mdif" => encoder.EncodeMdif(hexInput),
+                "hdb3" => encoder.EncodeHdb3(hexInput),
+                "8b6t" => encoder.Encode8B6T(hexInput),
+                "6b8b" => encoder.Encode6B8B(hexInput),
+                _ => "erro"
+            });
         }
         catch (Exception)
         {
@@ -58,10 +46,10 @@ public class Encoder
         var lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
-            //Lê cada caractere de entrada como hexa e transforma na representação em binário
+            //Lemos cada caractere de entrada como hexa e transformamos na representação em binário
             foreach (char bin in _hexCharToBin[hex])
             {
-                //Para cada bit da representação em binário, se for 1 inverte o sinal atual
+                //Para cada bit da representação em binário, se for 1 invertemos o sinal atual
                 if (bin == '1')
                 {
                     lastSignal = lastSignal switch
@@ -87,7 +75,21 @@ public class Encoder
         {
             foreach (char bin in _hexCharToBin[hex])
             {
-                //Outro jeito de implementar, invertendo o sinal se for 0 e mantendo se for 1 e escrevendo o segundo sinal invertido
+                //Para cada bit da representação em binário, se for 0 invertemos o sinal, se for 1 mantemos o atual.
+                //A transição de onda é considerada, mas mapeada diretamente. Desta maneira o código fica mais limpo.
+                encodedData.Append(bin switch
+                {
+                    '0' when lastSignal == '-' => "+-",
+                    '0' when lastSignal == '+' => "-+",
+                    '1' when lastSignal == '-' => "-+",
+                    '1' when lastSignal == '+' => "+-"
+                });
+
+                lastSignal = encodedData[^1];
+                
+                //Outro jeito de implementar, invertemos o sinal se for 0 e mantemos se for 1. Então escrevemos o
+                //segundo sinal invertido representando a transição da onda.
+                
                 /*if (bin == '0')
                 {
                     lastSignal = lastSignal switch
@@ -104,24 +106,6 @@ public class Encoder
                     '+' => '-'
                 };
                 encodedData.Append(lastSignal);*/
-
-                switch (bin)
-                {
-                    case '0' when lastSignal == '-':
-                        encodedData.Append("+-");
-                        break;
-                    case '0' when lastSignal == '+':
-                        encodedData.Append("-+");
-                        break;
-                    case '1' when lastSignal == '-':
-                        encodedData.Append("-+");
-                        break;
-                    case '1' when lastSignal == '+':
-                        encodedData.Append("+-");
-                        break;
-                }
-
-                lastSignal = encodedData[^1];
             }
         }
 
@@ -131,16 +115,35 @@ public class Encoder
 
     public string Encode8B6T(string hexInput)
     {
+        //Lemos a tabela de 8B6T para conversão de bits em sinais e transformamos em um dicionário.
         var _binTo8b6t = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv");
-        StringBuilder encodedData = new();
-        var weight = 0;
         hexInput = hexInput.ToLower();
+        
+        var encodedData = new StringBuilder();
+        var weight = 0;
+        
+        //A cada dois caracteres hexa, transformamos em 8 bits e consultamos o sinal correspondente no dicionário
         for (var i = 0; i < hexInput.Length - 1; i += 2)
         {
             string encodedStr = _binTo8b6t[_hexCharToBin[hexInput[i]] + _hexCharToBin[hexInput[i + 1]]];
-            if (weight > 0)
+
+            //8b6t tem somente desbalanços positivos. Se ao somar os sinais obtivermos 1, significa que existe desbalanço.
+            foreach (char c in encodedStr)
+            {
+                weight = c switch
+                {
+                    '+' => weight + 1,
+                    '-' => weight - 1,
+                    _ => weight
+                };
+            }
+
+            //Se o peso for 1, significa que os 6 sinais atuais estão em desbalanço. Ao encontrarmos mais 6 sinais em 
+            //desbalanço, o peso será 2, sinalizando que podemos inverter estes 6 sinais para balancear o DC novamente.
+            if (weight > 1)
             {
                 var newEncodedStr = new StringBuilder();
+                //Invertemos cada sinal e ao fim zeramos o peso.
                 foreach (char c in encodedStr)
                 {
                     newEncodedStr.Append(c switch
@@ -150,20 +153,12 @@ public class Encoder
                         _ => c
                     });
                 }
-            }
-            else
-            {
-                foreach (char c in encodedStr)
-                {
-                    weight = c switch
-                    {
-                        '+' => weight + 1,
-                        '-' => weight - 1
-                    };
-                }
+
+                encodedStr = newEncodedStr.ToString();
+                weight = 0;
             }
 
-            encodedData.Append();
+            encodedData.Append(encodedStr);
         }
 
         return encodedData.ToString();

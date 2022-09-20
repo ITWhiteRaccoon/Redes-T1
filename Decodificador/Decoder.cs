@@ -24,27 +24,15 @@ public class Decoder
         {
             string signalInput = args[1].ToLower();
             var decoder = new Decoder();
-            switch (args[0].ToLower())
+            Console.WriteLine(args[0].ToLower() switch
             {
-                case "nrzi":
-                    Console.WriteLine(decoder.DecodeNrzi(signalInput));
-                    break;
-                case "mdif":
-                    Console.WriteLine(decoder.DecodeMdif(signalInput));
-                    break;
-                case "hdb3":
-                    Console.WriteLine(decoder.DecodeHdb3(signalInput));
-                    break;
-                case "8b6t":
-                    Console.WriteLine(decoder.Decode8B6T(signalInput));
-                    break;
-                case "6b8b":
-                    Console.WriteLine(decoder.Decode6B8B(signalInput));
-                    break;
-                default:
-                    Console.WriteLine("erro");
-                    break;
-            }
+                "nrzi" => decoder.DecodeNrzi(signalInput),
+                "mdif" => decoder.DecodeMdif(signalInput),
+                "hdb3" => decoder.DecodeHdb3(signalInput),
+                "8b6t" => decoder.Decode8B6T(signalInput),
+                "6b8b" => decoder.Decode6B8B(signalInput),
+                _ => "erro"
+            });
         }
         catch (Exception)
         {
@@ -54,6 +42,7 @@ public class Decoder
 
     public string BinToHex(string bin)
     {
+        //Transforma o binário em hexadecimal, adicionando zeros à esquerda para completar os 4 bits
         StringBuilder hex = new();
         bin = bin.PadLeft((int)Math.Ceiling((double)(bin.Length / 4)), '0');
         for (var i = 0; i < bin.Length; i += 4)
@@ -88,25 +77,34 @@ public class Decoder
         var lastSignal = '-';
         for (var i = 0; i < signalInput.Length; i += 2)
         {
+            //Para cada sinal lido, se for diferente do anterior, quer dizer que o bit é 0. O segundo sinal é ignorado,
+            //pois representa a transição de onde que serve apenas para sincronização.
             int digit = signalInput[i] != lastSignal ? 0 : 1;
             lastSignal = signalInput[i + 1];
+                
             decodedDataBin.Append(digit);
         }
 
         return BinToHex(decodedDataBin.ToString()).ToUpper();
     }
 
-    public string DecodeHdb3(string signalInput)
-    {
-        return "";
-    }
-
     public string Decode8B6T(string signalInput)
     {
-        return "";
+        StringBuilder decodedDataBin = new();
+        for (var i = 0; i < signalInput.Length; i += 2)
+        {
+                
+        }
+
+        return BinToHex(decodedDataBin.ToString()).ToUpper();
     }
 
     public string Decode6B8B(string signalInput)
+    {
+        return "";
+    }
+
+    public string DecodeHdb3(string signalInput)
     {
         return "";
     }

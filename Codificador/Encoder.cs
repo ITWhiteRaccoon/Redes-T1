@@ -1,34 +1,16 @@
 ﻿using System.Text;
+using Util;
 
 namespace Codificador;
 
 public class Encoder
 {
-    enum Signal
-    {
-        Minus = 0,
-        Plus = 1
-    }
+    private readonly Dictionary<char, string> _hexCharToBin;
 
-    private static readonly Dictionary<char, string> HexCharToBin = new()
+    public Encoder()
     {
-        { '0', "0000" },
-        { '1', "0001" },
-        { '2', "0010" },
-        { '3', "0011" },
-        { '4', "0100" },
-        { '5', "0101" },
-        { '6', "0110" },
-        { '7', "0111" },
-        { '8', "1000" },
-        { '9', "1001" },
-        { 'a', "1010" },
-        { 'b', "1011" },
-        { 'c', "1100" },
-        { 'd', "1101" },
-        { 'e', "1110" },
-        { 'f', "1111" }
-    };
+        _hexCharToBin = IO.ReadDictionary<char, string>("hex-bin.csv");
+    }
 
     public static void Main(string[] args)
     {
@@ -41,22 +23,23 @@ public class Encoder
         try
         {
             string hexInput = args[1].ToLower();
+            var encoder = new Encoder();
             switch (args[0].ToLower())
             {
                 case "nrzi":
-                    Console.WriteLine(EncodeNrzi(hexInput));
+                    Console.WriteLine(encoder.EncodeNrzi(hexInput));
                     break;
                 case "mdif":
-                    Console.WriteLine(EncodeMdif(hexInput));
+                    Console.WriteLine(encoder.EncodeMdif(hexInput));
                     break;
                 case "hdb3":
-                    Console.WriteLine(EncodeHdb3(hexInput));
+                    Console.WriteLine(encoder.EncodeHdb3(hexInput));
                     break;
                 case "8b6t":
-                    Console.WriteLine(Encode8B6T(hexInput));
+                    Console.WriteLine(encoder.Encode8B6T(hexInput));
                     break;
                 case "6b8b":
-                    Console.WriteLine(Encode6B8B(hexInput));
+                    Console.WriteLine(encoder.Encode6B8B(hexInput));
                     break;
                 default:
                     Console.WriteLine("erro");
@@ -69,14 +52,14 @@ public class Encoder
         }
     }
 
-    public static string EncodeNrzi(string hexInput)
+    public string EncodeNrzi(string hexInput)
     {
         StringBuilder encodedData = new();
         char lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
             //Lê cada caractere de entrada como hexa e transforma na representação em binário
-            foreach (char bin in HexCharToBin[hex])
+            foreach (char bin in _hexCharToBin[hex])
             {
                 //Para cada bit da representação em binário, se for 1 inverte o sinal atual
                 if (bin == '1')
@@ -96,13 +79,13 @@ public class Encoder
         return encodedData.ToString();
     }
 
-    public static string EncodeMdif(string hexInput)
+    public string EncodeMdif(string hexInput)
     {
         StringBuilder encodedData = new();
         char lastSignal = '-';
         foreach (char hex in hexInput.ToLower())
         {
-            foreach (char bin in HexCharToBin[hex])
+            foreach (char bin in _hexCharToBin[hex])
             {
                 //Outro jeito de implementar, invertendo o sinal se for 0 e mantendo se for 1 e escrevendo o segundo sinal invertido
                 /*if (bin == '0')
@@ -146,17 +129,18 @@ public class Encoder
     }
 
 
-    public static string Encode8B6T(string hexInput)
+    public string Encode8B6T(string hexInput)
+    {
+        var _binTo8b6t = IO.ReadDictionary<string, string>("bin-8b6t.csv");
+        return "";
+    }
+
+    public string Encode6B8B(string hexInput)
     {
         return "";
     }
 
-    public static string Encode6B8B(string hexInput)
-    {
-        return "";
-    }
-
-    public static string EncodeHdb3(string hexInput)
+    public string EncodeHdb3(string hexInput)
     {
         return "";
     }

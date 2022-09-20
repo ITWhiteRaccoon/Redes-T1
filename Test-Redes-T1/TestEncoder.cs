@@ -4,6 +4,8 @@ namespace Test_Redes_T1;
 
 public class TestEncoder
 {
+    private Encoder _encoder;
+
     private static readonly TestResult[] ExpectedNrzi =
     {
         new("5678", "-++--+---+-+----"),
@@ -56,12 +58,18 @@ public class TestEncoder
         new("AABBCCDDEEFF", "+0-0+0-0+0-+-0+-+-00+-00+-0+-+0-+-+0-+-0+-+-+-+-"),
     };
 
+    [OneTimeSetUp]
+    public void SetUp()
+    {
+        _encoder = new Encoder();
+    }
+
     [Test]
     public void TestEncoderNrzi()
     {
         foreach (TestResult testExpected in ExpectedNrzi)
         {
-            string testOutput = Encoder.EncodeNrzi(testExpected.Input);
+            string testOutput = _encoder.EncodeNrzi(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For nrzi with input {testExpected.Input}:");
         }
@@ -72,7 +80,7 @@ public class TestEncoder
     {
         foreach (TestResult testExpected in ExpectedMdif)
         {
-            string testOutput = Encoder.EncodeMdif(testExpected.Input);
+            string testOutput = _encoder.EncodeMdif(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For mdif with input {testExpected.Input}:");
         }
@@ -83,7 +91,7 @@ public class TestEncoder
     {
         foreach (TestResult testExpected in Expected8B6T)
         {
-            string testOutput = Encoder.Encode8B6T(testExpected.Input);
+            string testOutput = _encoder.Encode8B6T(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For 8b6t with input {testExpected.Input}:");
         }
@@ -94,7 +102,7 @@ public class TestEncoder
     {
         foreach (TestResult testExpected in Expected6B8B)
         {
-            string testOutput = Encoder.Encode6B8B(testExpected.Input);
+            string testOutput = _encoder.Encode6B8B(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For 6b8b with input {testExpected.Input}:");
         }
@@ -105,7 +113,7 @@ public class TestEncoder
     {
         foreach (TestResult testExpected in ExpectedHdb3)
         {
-            string testOutput = Encoder.EncodeHdb3(testExpected.Input);
+            string testOutput = _encoder.EncodeHdb3(testExpected.Input);
             Assert.That(testOutput, Is.EqualTo(testExpected.Output),
                 () => $"For Hdb3 with input {testExpected.Input}:");
         }

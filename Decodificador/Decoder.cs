@@ -1,28 +1,17 @@
 ﻿using System.Text;
+using Util;
 
 namespace Decodificador;
 
 public class Decoder
 {
-    private static readonly Dictionary<string, char> BinToHexChar = new()
+    private readonly Dictionary<string, char> _binToHexChar;
+
+    public Decoder()
     {
-        { "0000", '0' },
-        { "0001", '1' },
-        { "0010", '2' },
-        { "0011", '3' },
-        { "0100", '4' },
-        { "0101", '5' },
-        { "0110", '6' },
-        { "0111", '7' },
-        { "1000", '8' },
-        { "1001", '9' },
-        { "1010", 'a' },
-        { "1011", 'b' },
-        { "1100", 'c' },
-        { "1101", 'd' },
-        { "1110", 'e' },
-        { "1111", 'f' }
-    };
+        _binToHexChar = IO.ReadDictionary<string, char>("hex-bin.csv", 1);
+        //TODO fix usages and test
+    }
 
     public static void Main(string[] args)
     {
@@ -69,7 +58,7 @@ public class Decoder
         bin = bin.PadLeft((int)Math.Ceiling((double)(bin.Length / 4)), '0');
         for (int i = 0; i < bin.Length; i += 4)
         {
-            hex.Append(BinToHexChar[bin[i..(i + 4)]]);
+            hex.Append(_binToHexChar[bin[i..(i + 4)]]);
         }
 
         return hex.ToString();

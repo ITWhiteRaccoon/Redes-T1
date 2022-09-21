@@ -199,6 +199,9 @@ public class Encoder
         var lastSignal = '-';
         var cont = 0;
         
+        // Criamos uma lista dos bits de entrada para que houvesse a possibilidade de mudar o valor das posições
+        // usando o valor do ultimo pulso modificamos de acordo com o metodo AMI e também de acordo com o número de 0's
+        // a cada 4 0's existe uma violação, sendo assim mudando o valor dele para demonstrar tal
         for (var i = 0; i > tamString; i++)
         {
             if (bit == "1")

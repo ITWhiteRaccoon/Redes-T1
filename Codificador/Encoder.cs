@@ -169,8 +169,20 @@ public class Encoder
         return "";
     }
 
-    public string EncodeHdb3(string hexInput)
+    public string EncodeHdb3(string bitsInput)
     {
-        return "";
+        StringBuilder encodedData = new();
+        var lastBit = '';
+        
+        foreach (char bit in bitsInput)
+        {
+            lastBit == "1"
+            if (lastBit == "1")
+            {
+                
+            } else if (lastBit == "1")
+        }
+
+        return encodedData.ToString();
     }
 }

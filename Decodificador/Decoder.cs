@@ -23,7 +23,7 @@ public class Decoder
         try
         {
             string signalInput = args[1].ToLower();
-            var decoder = new Decoder();
+            Decoder decoder = new();
             Console.WriteLine(args[0].ToLower() switch
             {
                 "nrzi" => decoder.DecodeNrzi(signalInput),
@@ -81,7 +81,7 @@ public class Decoder
             //pois representa a transição de onde que serve apenas para sincronização.
             int digit = signalInput[i] != lastSignal ? 0 : 1;
             lastSignal = signalInput[i + 1];
-                
+
             decodedDataBin.Append(digit);
         }
 
@@ -90,10 +90,46 @@ public class Decoder
 
     public string Decode8B6T(string signalInput)
     {
+        var binFrom8B6T = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv", 1, 0);
+
         StringBuilder decodedDataBin = new();
-        for (var i = 0; i < signalInput.Length; i += 2)
+        var weight = 0;
+
+        for (var i = 0; i < signalInput.Length; i += 6)
         {
-                
+            string currSignal = signalInput[i..(i + 6)];
+
+            var newWeight = 0;
+            foreach (char c in currSignal)
+            {
+                newWeight = c switch
+                {
+                    '+' => newWeight + 1,
+                    '-' => newWeight - 1,
+                    _ => newWeight
+                };
+            }
+
+            if (weight == 1 && newWeight == -1)
+            {
+                StringBuilder invertedStr = new();
+                foreach (var c in currSignal)
+                {
+                    invertedStr.Append(c switch
+                    {
+                        '+' => '-',
+                        '-' => '+',
+                        _ => c
+                    });
+                }
+
+                currSignal = invertedStr.ToString();
+                newWeight = 0;
+            }
+
+            weight = newWeight;
+
+            decodedDataBin.Append(binFrom8B6T[currSignal]);
         }
 
         return BinToHex(decodedDataBin.ToString()).ToUpper();

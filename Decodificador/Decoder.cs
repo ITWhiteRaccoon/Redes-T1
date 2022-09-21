@@ -53,6 +53,24 @@ public class Decoder
         return hex.ToString();
     }
 
+    public string DecodeNrziToBin(string signalInput)
+    {
+        StringBuilder decodedDataBin = new();
+        var lastSignal = '-';
+        foreach (char c in signalInput)
+        {
+            //Para cada sinal lido, se diferente do anterior quer dizer que o bit é 1, se igual então 0
+            int digit = c != lastSignal ? 1 : 0;
+            //Guarda o sinal lido como último usado
+            lastSignal = c;
+            //Adiciona o bit ao final dos dados decodificados
+            decodedDataBin.Append(digit);
+        }
+
+        //O dado foi lido bit a bit. Para retornar, transforma na representação em hexa
+        return decodedDataBin.ToString();
+    }
+
     public string DecodeNrzi(string signalInput)
     {
         StringBuilder decodedDataBin = new();
@@ -133,7 +151,30 @@ public class Decoder
 
     public string Decode6B8B(string signalInput)
     {
-        return "";
+        var decodeFrom6B8B = IO.ReadDictionary<string, string>("Dados/bin-6b8b.csv", 1, 0);
+        var decodedBin = new StringBuilder();
+
+        var decodedNrziBin = DecodeNrziToBin(signalInput);
+
+        for (int i = 0; i < decodedNrziBin.Length; i += 8)
+        {
+            var currBin = decodedNrziBin[i..(i + 8)];
+            var decodeMode = currBin[..2];
+
+            switch (decodeMode)
+            {
+                case "00" when currBin[2..] != "001111":
+                case "11" when currBin[2..] != "110000":
+                case "10":
+                    decodedBin.Append(currBin[2..]);
+                    break;
+                case "01":
+                    decodedBin.Append(decodeFrom6B8B[currBin]);
+                    break;
+            }
+        }
+
+        return BinToHex(decodedBin.ToString()).ToUpper();
     }
 
     public string DecodeHdb3(string signalInput)

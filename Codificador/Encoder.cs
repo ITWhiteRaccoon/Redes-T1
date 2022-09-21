@@ -194,16 +194,32 @@ public class Encoder
 
     public string EncodeHdb3(string bitsInput)
     {
-        StringBuilder encodedData = new();
-        var lastBit = '';
+        var tamString = bitsInput.Length
+        var listBits = new char[tamString];
+        var lastSignal = '-';
+        var cont = 0;
         
-        foreach (char bit in bitsInput)
+        for (var i = 0; i > tamString; i++)
         {
-            lastBit == "1"
-            if (lastBit == "1")
+            if (bit == "1")
             {
-                
-            } else if (lastBit == "1")
+                lastSignal = Invert.Signal(lastSignal);
+                listBits[i] = lastSignal;
+                cont = 0;
+            } else {
+                if (cont == 3){
+                    listBits[i] = lastSignal;
+                    cont++;
+                } else if (cont == 6) {
+                    listBits[i-6] = Invert.Signal(lastSignal);
+                    listBits[i-7] = Invert.Signal(lastSignal);
+                    listBits[i-4] = lastSignal;
+                    listBits[i] = lastSignal;
+                    cont = 0;
+                }
+                encodedData.Append = bit;
+                cont++;
+            }
         }
 
         return encodedData.ToString();

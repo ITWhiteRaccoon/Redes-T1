@@ -182,37 +182,45 @@ public class Decoder
         // Criamos uma lista dos bits de entrada para que houvesse a possibilidade de mudar o valor das posições
         // usando o valor do ultimo pulso modificamos de acordo com o metodo AMI e também de acordo com o número de 0's
         // a cada 4 0's existe uma violação, sendo assim mudando o valor dele para demonstrar tal
-        // para a decodificação é a mesma coisa, pois faz ao contrario já
-        var signalList = new char[signalInput.Length];
+
         var lastSignal = '-';
-        var cont = 0;
+        var lastSignalPos = -1;
+        var decodedList = new char[signalInput.Length];
+        var count = 0;
 
         for (var i = 0; i < signalInput.Length; i++)
         {
-            if (signalInput[i] == '1')
+            char signal = signalInput[i];
+            if (signal == '0')
             {
-                lastSignal = Invert.Signal(lastSignal);
-                signalList[i] = lastSignal;
-                cont = 0;
+                decodedList[i] = '0';
+                count++;
             }
             else
             {
-                if (cont == 3)
+                if (signal == lastSignal)
                 {
-                    signalList[i] = lastSignal;
+                    if (count == 3)
+                    {
+                        decodedList[lastSignalPos] = '1';
+                    }
+                    else
+                    {
+                        decodedList[lastSignalPos] = '0';
+                    }
+
+                    decodedList[i] = '0';
                 }
-                else if (cont == 7)
+                else
                 {
-                    signalList[i - 7] = Invert.Signal(lastSignal);
-                    signalList[i - 4] = lastSignal;
-                    signalList[i - 3] = Invert.Signal(lastSignal);
-                    signalList[i] = lastSignal;
+                    decodedList[i] = '1';
                 }
 
-                cont++;
+                lastSignal = signal;
+                lastSignalPos = i;
             }
         }
 
-        return string.Join("", signalList);
+        return BinToHex(string.Join("", decodedList)).ToUpper();
     }
 }

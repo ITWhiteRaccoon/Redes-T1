@@ -223,33 +223,45 @@ public class Encoder
         // usando o valor do ultimo pulso modificamos de acordo com o metodo AMI e também de acordo com o número de 0's
         // a cada 4 0's existe uma violação, sendo assim mudando o valor dele para demonstrar tal
 
-        var signalList = new char[hexInput.Length];
-        var lastSignal = '-';
-        var cont = 0;
+        var binInput = new StringBuilder();
 
-        for (var i = 0; i < hexInput.Length; i++)
+        foreach (var hex in hexInput.ToLower())
         {
-            if (hexInput[i] == '1')
+            binInput.Append(_hexCharToBin[hex]);
+        }
+
+        var signalList = new char[binInput.Length];
+        var nextSignal = '+';
+        var count = 0;
+
+
+        for (var i = 0; i < binInput.Length; i++)
+        {
+            if (binInput[i] == '1')
             {
-                lastSignal = Invert.Signal(lastSignal);
-                signalList[i] = lastSignal;
-                cont = 0;
+                signalList[i] = nextSignal;
+                nextSignal = Invert.Signal(nextSignal);
+                count = 0;
             }
             else
             {
-                if (cont == 3)
+                if (count == 3)
                 {
-                    signalList[i] = lastSignal;
+                    signalList[i] = Invert.Signal(nextSignal);
                 }
-                else if (cont == 7)
+                else if (count == 7)
                 {
-                    signalList[i - 7] = Invert.Signal(lastSignal);
-                    signalList[i - 4] = lastSignal;
-                    signalList[i - 3] = Invert.Signal(lastSignal);
-                    signalList[i] = lastSignal;
+                    signalList[i - 7] = nextSignal;
+                    signalList[i - 4] = Invert.Signal(nextSignal);
+                    signalList[i - 3] = nextSignal;
+                    signalList[i] = Invert.Signal(nextSignal);
+                }
+                else
+                {
+                    signalList[i] = '0';
                 }
 
-                cont++;
+                count++;
             }
         }
 

@@ -138,6 +138,38 @@ public class Decoder
 
     public string DecodeHdb3(string signalInput)
     {
-        return "";
+        var tamString = bitsInput.Length
+        var listBits = new char[tamString];
+        var lastSignal = '-';
+        var cont = 0;
+        
+        // Criamos uma lista dos bits de entrada para que houvesse a possibilidade de mudar o valor das posições
+        // usando o valor do ultimo pulso modificamos de acordo com o metodo AMI e também de acordo com o número de 0's
+        // a cada 4 0's existe uma violação, sendo assim mudando o valor dele para demonstrar tal
+        // para a decodificação é a mesma coisa, pois faz ao contrario já
+        for (var i = 0; i > tamString; i++)
+        {
+            if (bit == "1")
+            {
+                lastSignal = Invert.Signal(lastSignal);
+                listBits[i] = lastSignal;
+                cont = 0;
+            } else {
+                if (cont == 3){
+                    listBits[i] = lastSignal;
+                    cont++;
+                } else if (cont == 6) {
+                    listBits[i-6] = Invert.Signal(lastSignal);
+                    listBits[i-7] = Invert.Signal(lastSignal);
+                    listBits[i-4] = lastSignal;
+                    listBits[i] = lastSignal;
+                    cont = 0;
+                }
+                encodedData.Append = bit;
+                cont++;
+            }
+        }
+
+        return encodedData.ToString();
     }
 }

@@ -23,7 +23,7 @@ public class Decoder
         try
         {
             string signalInput = args[1].ToLower();
-            var decoder = new Decoder();
+            Decoder decoder = new();
             Console.WriteLine(args[0].ToLower() switch
             {
                 "nrzi" => decoder.DecodeNrzi(signalInput),
@@ -44,7 +44,7 @@ public class Decoder
     {
         //Transforma o binário em hexadecimal, adicionando zeros à esquerda para completar os 4 bits
         StringBuilder hex = new();
-        bin = bin.PadLeft((int)Math.Ceiling((double)(bin.Length / 4)), '0');
+        bin = bin.PadLeft(4 * (int)Math.Ceiling((double)bin.Length / 4), '0');
         for (var i = 0; i < bin.Length; i += 4)
         {
             hex.Append(_binToHexChar[bin[i..(i + 4)]]);
@@ -81,7 +81,7 @@ public class Decoder
             //pois representa a transição de onde que serve apenas para sincronização.
             int digit = signalInput[i] != lastSignal ? 0 : 1;
             lastSignal = signalInput[i + 1];
-                
+
             decodedDataBin.Append(digit);
         }
 
@@ -90,13 +90,45 @@ public class Decoder
 
     public string Decode8B6T(string signalInput)
     {
-        StringBuilder decodedDataBin = new();
-        for (var i = 0; i < signalInput.Length; i += 2)
+        //Lemos a tabela de 8B6T para conversão de binário para sinais e construímos um dicionário invertido, usando o sinal como chave
+        var binFrom8B6T = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv", 1, 0);
+
+        StringBuilder decodedData = new();
+
+        for (var i = 0; i < signalInput.Length; i += 6)
         {
-                
+            string currSignal = signalInput[i..(i + 6)];
+
+            //Para cada 6 sinais, calculamos se há desbalanço.
+            var weight = 0;
+            foreach (char c in currSignal)
+            {
+                weight += c switch
+                {
+                    '+' => 1,
+                    '-' => -1,
+                    _ => 0
+                };
+            }
+
+            //Caso algum sinal esteja com desbalanço negativo, significa que ele foi invertido para balancear os níveis.
+            //Neste caso invertemos novamente para voltar ao sinal original.
+            if (weight == -1)
+            {
+                StringBuilder invertedStr = new();
+                foreach (char c in currSignal)
+                {
+                    invertedStr.Append(Invert.Signal(c));
+                }
+
+                currSignal = invertedStr.ToString();
+            }
+
+            //Já tendo o sinal na forma correta, procuramos na tabela de conversão o binário correspondente
+            decodedData.Append(binFrom8B6T[currSignal]);
         }
 
-        return BinToHex(decodedDataBin.ToString()).ToUpper();
+        return BinToHex(decodedData.ToString()).ToUpper();
     }
 
     public string Decode6B8B(string signalInput)

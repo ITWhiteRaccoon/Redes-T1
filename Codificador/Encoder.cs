@@ -23,7 +23,7 @@ public class Encoder
         try
         {
             string hexInput = args[1].ToLower();
-            var encoder = new Encoder();
+            Encoder encoder = new();
             Console.WriteLine(args[0].ToLower() switch
             {
                 "nrzi" => encoder.EncodeNrzi(hexInput),
@@ -52,11 +52,7 @@ public class Encoder
                 //Para cada bit da representação em binário, se for 1 invertemos o sinal atual
                 if (bin == '1')
                 {
-                    lastSignal = lastSignal switch
-                    {
-                        '-' => '+',
-                        '+' => '-'
-                    };
+                    lastSignal = Invert.Signal(lastSignal);
                 }
 
                 //Adiciona o dado codificado ao fim da string
@@ -76,7 +72,7 @@ public class Encoder
             foreach (char bin in _hexCharToBin[hex])
             {
                 //Para cada bit da representação em binário, se for 0 invertemos o sinal, se for 1 mantemos o atual.
-                //A transição de onda é considerada, mas mapeada diretamente. Desta maneira o código fica mais limpo.
+                //A transição de onda é considerada, mas mapeada diretamente. Desta maneira o código fica mais simples.
                 encodedData.Append(bin switch
                 {
                     '0' when lastSignal == '-' => "+-",
@@ -86,25 +82,17 @@ public class Encoder
                 });
 
                 lastSignal = encodedData[^1];
-                
+
                 //Outro jeito de implementar, invertemos o sinal se for 0 e mantemos se for 1. Então escrevemos o
                 //segundo sinal invertido representando a transição da onda.
-                
                 /*if (bin == '0')
                 {
-                    lastSignal = lastSignal switch
-                    {
-                        '-' => '+',
-                        '+' => '-'
-                    };
+                    lastSignal = Invert.Signal(lastSignal);
                 }
 
                 encodedData.Append(lastSignal);
-                lastSignal = lastSignal switch
-                {
-                    '-' => '+',
-                    '+' => '-'
-                };
+
+                lastSignal = Invert.Signal(lastSignal);
                 encodedData.Append(lastSignal);*/
             }
         }
@@ -116,45 +104,40 @@ public class Encoder
     public string Encode8B6T(string hexInput)
     {
         //Lemos a tabela de 8B6T para conversão de bits em sinais e transformamos em um dicionário.
-        var _binTo8b6t = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv");
+        var binTo8B6T = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv");
         hexInput = hexInput.ToLower();
-        
-        var encodedData = new StringBuilder();
+
+        StringBuilder encodedData = new();
         var weight = 0;
-        
+
         //A cada dois caracteres hexa, transformamos em 8 bits e consultamos o sinal correspondente no dicionário
         for (var i = 0; i < hexInput.Length - 1; i += 2)
         {
-            string encodedStr = _binTo8b6t[_hexCharToBin[hexInput[i]] + _hexCharToBin[hexInput[i + 1]]];
+            string encodedStr = binTo8B6T[_hexCharToBin[hexInput[i]] + _hexCharToBin[hexInput[i + 1]]];
 
             //8b6t tem somente desbalanços positivos. Se ao somar os sinais obtivermos 1, significa que existe desbalanço.
             foreach (char c in encodedStr)
             {
-                weight = c switch
+                weight += c switch
                 {
-                    '+' => weight + 1,
-                    '-' => weight - 1,
-                    _ => weight
+                    '+' => 1,
+                    '-' => -1,
+                    _ => 0
                 };
             }
 
             //Se o peso for 1, significa que os 6 sinais atuais estão em desbalanço. Ao encontrarmos mais 6 sinais em 
             //desbalanço, o peso será 2, sinalizando que podemos inverter estes 6 sinais para balancear o DC novamente.
-            if (weight > 1)
+            if (weight == 2)
             {
-                var newEncodedStr = new StringBuilder();
+                StringBuilder invertedStr = new();
                 //Invertemos cada sinal e ao fim zeramos o peso.
                 foreach (char c in encodedStr)
                 {
-                    newEncodedStr.Append(c switch
-                    {
-                        '+' => '-',
-                        '-' => '+',
-                        _ => c
-                    });
+                    invertedStr.Append(Invert.Signal(c));
                 }
 
-                encodedStr = newEncodedStr.ToString();
+                encodedStr = invertedStr.ToString();
                 weight = 0;
             }
 
@@ -166,7 +149,47 @@ public class Encoder
 
     public string Encode6B8B(string hexInput)
     {
-        return "";
+        StringBuilder encodedData = new();
+        StringBuilder binData = new();
+        foreach (char c in hexInput.ToLower())
+        {
+            binData.Append(_hexCharToBin[c]);
+        }
+
+        string bin = binData.ToString().PadLeft(6 * (int)Math.Ceiling((double)binData.Length / 6), '0');
+
+        for (var i = 0; i < bin.Length; i += 6)
+        {
+            string currBits = bin[i..(i + 6)];
+
+            var disparity = 0;
+            foreach (char c in currBits)
+            {
+                disparity += c switch
+                {
+                    '0' => -1,
+                    '1' => 1,
+                    _ => 0
+                };
+            }
+
+            encodedData.Append(disparity switch
+            {
+                0 => "10" + currBits,
+                2 when currBits != "001111" => "00" + currBits,
+                -2 when currBits != "110000" => "11" + currBits,
+                2 or -2 => "01" + Invert.BitsWithMask(currBits, 0b000100),
+                6 or -6 => "01" + Invert.BitsWithMask(currBits, 0b011001),
+                4 or -4 => currBits.IndexOf('0') switch
+                {
+                    0 or 1 => "01" + Invert.BitsWithMask(currBits, 0b000011),
+                    2 or 3 => "01" + Invert.BitsWithMask(currBits, 0b100001),
+                    4 or 5 => "01" + Invert.BitsWithMask(currBits, 0b110000)
+                }
+            });
+        }
+
+        return encodedData.ToString();
     }
 
     public string EncodeHdb3(string bitsInput)

@@ -44,7 +44,7 @@ public class Decoder
     {
         //Transforma o binário em hexadecimal, adicionando zeros à esquerda para completar os 4 bits
         StringBuilder hex = new();
-        bin = bin.PadLeft((int)Math.Ceiling((double)(bin.Length / 4)), '0');
+        bin = bin.PadLeft(4 * (int)Math.Ceiling((double)bin.Length / 4), '0');
         for (var i = 0; i < bin.Length; i += 4)
         {
             hex.Append(_binToHexChar[bin[i..(i + 4)]]);
@@ -93,7 +93,7 @@ public class Decoder
         //Lemos a tabela de 8B6T para conversão de binário para sinais e construímos um dicionário invertido, usando o sinal como chave
         var binFrom8B6T = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv", 1, 0);
 
-        StringBuilder decodedDataBin = new();
+        StringBuilder decodedData = new();
 
         for (var i = 0; i < signalInput.Length; i += 6)
         {
@@ -103,11 +103,11 @@ public class Decoder
             var weight = 0;
             foreach (char c in currSignal)
             {
-                weight = c switch
+                weight += c switch
                 {
-                    '+' => weight + 1,
-                    '-' => weight - 1,
-                    _ => weight
+                    '+' => 1,
+                    '-' => -1,
+                    _ => 0
                 };
             }
 
@@ -118,22 +118,17 @@ public class Decoder
                 StringBuilder invertedStr = new();
                 foreach (char c in currSignal)
                 {
-                    invertedStr.Append(c switch
-                    {
-                        '+' => '-',
-                        '-' => '+',
-                        _ => c
-                    });
+                    invertedStr.Append(Invert.Signal(c));
                 }
 
                 currSignal = invertedStr.ToString();
             }
 
             //Já tendo o sinal na forma correta, procuramos na tabela de conversão o binário correspondente
-            decodedDataBin.Append(binFrom8B6T[currSignal]);
+            decodedData.Append(binFrom8B6T[currSignal]);
         }
 
-        return BinToHex(decodedDataBin.ToString()).ToUpper();
+        return BinToHex(decodedData.ToString()).ToUpper();
     }
 
     public string Decode6B8B(string signalInput)

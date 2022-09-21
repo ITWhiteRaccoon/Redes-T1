@@ -90,30 +90,33 @@ public class Decoder
 
     public string Decode8B6T(string signalInput)
     {
+        //Lemos a tabela de 8B6T para conversão de binário para sinais e construímos um dicionário invertido, usando o sinal como chave
         var binFrom8B6T = IO.ReadDictionary<string, string>("Dados/bin-8b6t.csv", 1, 0);
 
         StringBuilder decodedDataBin = new();
-        var weight = 0;
 
         for (var i = 0; i < signalInput.Length; i += 6)
         {
             string currSignal = signalInput[i..(i + 6)];
 
-            var newWeight = 0;
+            //Para cada 6 sinais, calculamos se há desbalanço.
+            var weight = 0;
             foreach (char c in currSignal)
             {
-                newWeight = c switch
+                weight = c switch
                 {
-                    '+' => newWeight + 1,
-                    '-' => newWeight - 1,
-                    _ => newWeight
+                    '+' => weight + 1,
+                    '-' => weight - 1,
+                    _ => weight
                 };
             }
 
-            if (weight == 1 && newWeight == -1)
+            //Caso algum sinal esteja com desbalanço negativo, significa que ele foi invertido para balancear os níveis.
+            //Neste caso invertemos novamente para voltar ao sinal original.
+            if (weight == -1)
             {
                 StringBuilder invertedStr = new();
-                foreach (var c in currSignal)
+                foreach (char c in currSignal)
                 {
                     invertedStr.Append(c switch
                     {
@@ -124,11 +127,9 @@ public class Decoder
                 }
 
                 currSignal = invertedStr.ToString();
-                newWeight = 0;
             }
 
-            weight = newWeight;
-
+            //Já tendo o sinal na forma correta, procuramos na tabela de conversão o binário correspondente
             decodedDataBin.Append(binFrom8B6T[currSignal]);
         }
 

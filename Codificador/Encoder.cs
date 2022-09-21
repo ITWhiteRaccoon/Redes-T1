@@ -40,6 +40,25 @@ public class Encoder
         }
     }
 
+    public string EncodeNrziFromBinary(string binaryInput)
+    {
+        var lastSignal = '-';
+        var encodedData = new StringBuilder();
+        foreach (char bin in binaryInput)
+        {
+            //Para cada bit da representação em binário, se for 1 invertemos o sinal atual
+            if (bin == '1')
+            {
+                lastSignal = Invert.Signal(lastSignal);
+            }
+
+            //Adiciona o dado codificado ao fim da string
+            encodedData.Append(lastSignal);
+        }
+
+        return encodedData.ToString();
+    }
+
     public string EncodeNrzi(string hexInput)
     {
         StringBuilder encodedData = new();
@@ -180,7 +199,13 @@ public class Encoder
                 -2 when currBits != "110000" => "11" + currBits,
                 2 or -2 => "01" + Invert.BitsWithMask(currBits, 0b000100),
                 6 or -6 => "01" + Invert.BitsWithMask(currBits, 0b011001),
-                4 or -4 => currBits.IndexOf('0') switch
+                4 => currBits.IndexOf('0') switch
+                {
+                    0 or 1 => "01" + Invert.BitsWithMask(currBits, 0b000011),
+                    2 or 3 => "01" + Invert.BitsWithMask(currBits, 0b100001),
+                    4 or 5 => "01" + Invert.BitsWithMask(currBits, 0b110000)
+                },
+                -4 => currBits.IndexOf('1') switch
                 {
                     0 or 1 => "01" + Invert.BitsWithMask(currBits, 0b000011),
                     2 or 3 => "01" + Invert.BitsWithMask(currBits, 0b100001),
@@ -189,7 +214,7 @@ public class Encoder
             });
         }
 
-        return encodedData.ToString();
+        return EncodeNrziFromBinary(encodedData.ToString());
     }
 
     public string EncodeHdb3(string hexInput)

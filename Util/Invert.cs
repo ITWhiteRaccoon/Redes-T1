@@ -4,7 +4,7 @@ public class Invert
 {
     public static string BitsWithMask(string bits, uint bitMask)
     {
-        return Convert.ToString(Convert.ToUInt16(bits, 2) ^ bitMask, 2);
+        return Convert.ToString(Convert.ToUInt16(bits, 2) ^ bitMask, 2).PadLeft(bits.Length, '0');
     }
 
     public static char Bit(char bit)
